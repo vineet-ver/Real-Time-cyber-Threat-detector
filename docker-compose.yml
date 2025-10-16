@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  threat-detector:
+    build: .
+    container_name: cyber-threat-detector
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - PORT_SCAN_THRESHOLD=10
+      - DDOS_PACKET_THRESHOLD=1000
+      - MONITOR_INTERVAL=2
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    network_mode: "host"  # Required for network monitoring
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    
+  # Optional: Redis for scaling (future enhancement)
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped

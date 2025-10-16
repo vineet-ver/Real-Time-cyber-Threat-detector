@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "name": "cyber-threat-detector",
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ],
+  "env": {
+    "FLASK_ENV": "production",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "functions": {
+    "app.py": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
+}

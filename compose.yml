@@ -1,0 +1,79 @@
+# Dockerfile
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    nmap \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application files
+COPY . .
+
+# Expose port
+EXPOSE 5000
+
+# Set environment variables
+ENV FLASK_ENV=production
+ENV PYTHONUNBUFFERED=1
+
+# Run the application
+CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "--bind", "0.0.0.0:5000", "--timeout", "120", "app:app"]
+
+---
+# docker-compose.yml
+version: '3.8'
+
+services:
+  threat-detector:
+    build: .
+    container_name: cyber-threat-detector
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - PORT_SCAN_THRESHOLD=10
+      - DDOS_PACKET_THRESHOLD=1000
+      - MONITOR_INTERVAL=2
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    network_mode: "host"  # Required for network monitoring
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    
+  # Optional: Redis for scaling (future enhancement)
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+
+---
+# .dockerignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+ENV/
+.venv
+*.log
+.git
+.gitignore
+.env
+*.md
+.DS_Store
